@@ -1,7 +1,15 @@
 #!/usr/bin/env node
 
-
 var extend = require('util')._extend;
+ 
+// create a string tupel representation of an array
+var tuple = function (array) {
+    var result = "(" + array[0];
+    for (var i = 1; i < array.length; i++)
+        result += "," + array[i];
+    result += ")";
+    return result;
+};
 
 // iterate through a string character by character
 String.prototype.forEach = function (call) {
@@ -26,6 +34,16 @@ Array.prototype.diff = function (B) {
     return this.filter(function (a) { return B.indexOf(a) < 0; });
 };
 
+Array.prototype.set = function () {
+    var copy = this.slice();
+    copy.sort()
+    var result = "{" + copy[0];
+    for (var i = 1; i < copy.length; i++)
+        result += "," + copy[i];
+    result += "}";
+    return result;
+};
+
 // returns true is an array contains an element e
 Array.prototype.contains = function (e) {
     return this.indexOf(e) > -1;
@@ -33,9 +51,6 @@ Array.prototype.contains = function (e) {
 
 // an empty NFA
 var NFA = function () {
-
-    this.state = "";
-
     this.Q = [];            // set of all states for the DFA
     this.Sigma = [];        // alphabet of the DFA
     this.delta = {};        // the transition function of the DFA
@@ -43,15 +58,23 @@ var NFA = function () {
     this.accept = [];       //set of all accept states for DFA
 };
 
-var DFA = function () {
-    
+NFA.prototype.addTransition = function (current, symbol, next) {
+    if (this.delta[current] == undefined) {
+        this.delta[current] = {};
+    }
+    if (this.delta[current][symbol] == undefined) {
+        this.delta[current][symbol] = [];
+    }
+    // add next to set of states
+    this.delta[current][symbol].push(next);
 };
 
-DFA.prototype = new NFA();
-DFA.prototype.constructor = DFA;
+NFA.prototype.toString = function () {
+    return JSON.stringify(this, null, 4);
+};
 
 // delta star function
-NFA.prototype.deltastar = function(input) {
+NFA.prototype.deltastar = function (input) {
     var self = this;
     input.forEach(function (c) {
         self.state = self.delta[self.state+' '+c];
@@ -70,53 +93,126 @@ NFA.prototype.reject = function () {
 
 // returns the clone of the current NFA
 NFA.prototype.clone = function () {
-    var copy =  extend({}, this);
+    var copy = extend({}, this);
     copy.prototype = this.prototype;
     return copy;
 };
 
-NFA.prototype.getString = function () {
-     
-};
-
-// returns a DFA from the current NFA
+// returns a DFA from the current NFA (doesn't take into account epsilon
+// transitions)
 NFA.prototype.toDFA = function () {
-    var dfa = extend(new DFA(), this);
-    dfa.Q.cross(dfa.Sigma).forEach(function (pair) {
-        pair = pair[0] + ' ' + pair[1];
-        dfa.delta[pair] = (!!dfa.delta[pair])? dfa.delta[pair] : "trap";
+
+    var self = this;
+    var dfa = new DFA(); // the new DFA that will be returned
+
+    // only item than can be copied directly
+    dfa.initial = [this.initial].set(); 
+    dfa.Sigma   = this.Sigma;
+
+    dfa.Q.push("trap");
+    this.Sigma.forEach(function (c) {
+        dfa.addTransition("trap", c, "trap");
     });
-    return dfa;
+
+    var queue = [ [this.initial] ]; // queue of unprocessed sets of states
+    var processed = [];
+
+    // while the queue is not empty (BFS)
+    while (queue.length != 0) {
+
+        var current = queue.shift(); // current set states
+
+        dfa.Q.push(current.set());
+        processed.push(current.set());
+
+        this.Sigma.forEach(function (c) {
+
+            var next = []; // next set of states for input c
+
+            // compute the next state given symbol c
+            current.forEach(function (state) {
+                var q = self.delta[state][c];
+                if (q instanceof Array && q.length > 0) {
+                    q.forEach(function (s) {
+                        if (!next.contains(s)) {
+                            next.push(s);
+                        }
+                    });
+                } 
+            });
+
+            if (next.length > 0) {
+
+                dfa.addTransition(current.set(), c, next.set());
+
+                // add next state to queue if it hasn't already been processed
+                if (!processed.contains(next.set())) {
+                    queue.push(next);
+                }
+
+            // doesn't go anywhere, send to trap state
+            } else {
+                dfa.addTransition(current.set(), c, "trap");
+            }
+
+        });
+
+        // determine if the current sets of states have an accept state,
+        // if so add the current set of states to the accept states of the
+        // new DFA.
+        for (var i = 0; i < current.length; i++) {
+            if (this.accept.contains(current[i])) {
+                dfa.accept.push(current.set());
+                break;
+            }
+        }
+    }
+
+    return dfa; // and then there was a DFA
 };
 
+var DFA = function () {
+    this.Q = [];            // set of all states for the DFA
+    this.Sigma = [];        // alphabet of the DFA
+    this.delta = {};        // the transition function of the DFA
+    this.initial = "";      // initial state of DFA
+    this.accept = [];       // set of all accept states for DFA
+};
+
+DFA.prototype = new NFA();
+DFA.prototype.constructor = DFA;
+
+DFA.prototype.toString = function () {
+    return JSON.stringify(this, null, 4);
+};
+
+DFA.prototype.addTransition = function (current, symbol, next) {
+    if (this.delta[current] == undefined) {
+        this.delta[current] = {};
+    }
+    // set next state
+    this.delta[current][symbol] = next;
+};
 
 // returns the complement of the current DFA
 DFA.prototype.complement = function () {
-    var copy = this.clone();
+    var copy = new DFA();
+    copy = extend(copy, this);
     copy.accept = copy.Q.diff(copy.accept);
     return copy;
-};
- 
-var tuple = function () {
-    var r = "(" + arguments[0];
-    for (var i = 1; i < arguments.length; i++) {
-        r += "," + arguments[i];
-    }
-    r += ")";
-    return r;
 };
 
 // return the intersection of two DFA's
 DFA.prototype.intersect = function (dfa) {
-    var self = this, rdfa = new NFA(); // the new dfa to return
+    var self = this, rdfa = new DFA(); // the new dfa to return
     rdfa.Sigma = this.Sigma;
-    rdfa.initial = tuple(this.initial, dfa.initial);
+    rdfa.initial = tuple([this.initial, dfa.initial]);
     self.Q.cross(dfa.Q).forEach(function (c) {
-        var state = tuple(c[0],c[1]);
+        var state = tuple([c[0],c[1]]);
         rdfa.Q.push(state);
         self.Sigma.forEach (function (a) {
-            rdfa.delta[state+" "+a] = 
-                tuple(self.delta[c[0]+" "+a], dfa.delta[c[1]+" "+a]);
+            rdfa.addTransition(state, a,
+                tuple([ self.delta[c[0]][a], dfa.delta[c[1]][a] ]));
         });
 
         if (self.accept.contains(c[0])  &&  dfa.accept.contains(c[1])) {
@@ -126,10 +222,35 @@ DFA.prototype.intersect = function (dfa) {
     return rdfa;
 };
 
-// returns the clone of the current DFA
-DFA.prototype.clone = function () {
-    return Object.create(this);
+DFA.prototype.searchString = function () {
+    
+    var example = "";
+    var visited = [];
+
+    var hasString = function (DFA, state) {
+        if (DFA.accept.contains(state)) return true;
+
+        visited.push(state);
+
+        for (var i = 0; i < DFA.Sigma.length; i++) {
+            var c = DFA.Sigma[i];
+            var next = DFA.delta[state][c];
+            if (!visited.contains(next) && hasString(DFA, next)) {
+                example += c; 
+                return true;
+            }
+        }
+        
+        return false;
+    };
+
+    if (hasString(this, this.initial)) {
+        return "counterexample: " + example;
+    } else {
+        return "system satisfies the specification";
+    }
 };
+
 
 // function to parse input.
 var parserInput = function (input) {
@@ -139,7 +260,7 @@ var parserInput = function (input) {
 
     var spec = new NFA()
       , sys  = new NFA()
-      , dfa = spec;
+      , nfa = spec;
 
     spec.Q.push('1');
     sys.Q.push('1');
@@ -159,21 +280,23 @@ var parserInput = function (input) {
                     break;
 
                 case 'System automaton states':
-                    dfa = sys;
+                    nfa = sys;
                 case 'Specification automaton states':
-                    dfa.Q.push(line);
+                    nfa.Q.push(line);
                     break;
 
                 case 'Transition function':
-                    dfa.delta[line] = lines[++i];
+                    var current = line.split(' ')[0];
+                    var symbol  = line.split(' ')[1];
+                    nfa.addTransition(current, symbol, lines[++i]);
                     break;
 
                 case 'Initial state':
-                    dfa.initial = line;
+                    nfa.initial = line;
                     break;
 
                 case 'Final states':
-                    dfa.accept.push(line);
+                    nfa.accept.push(line);
                     break;
 
                 default:
@@ -182,8 +305,15 @@ var parserInput = function (input) {
         }
     }
 
+    /*
+    console.log(spec.toDFA().complement());
+    console.log(sys.toDFA());
+    console.log(spec.toDFA().complement().intersect(sys.toDFA()));
+    */
+
     var M = spec.toDFA().complement().intersect(sys.toDFA());
-    console.log(M);
+    console.log(M.searchString());
+
 };
 
 
