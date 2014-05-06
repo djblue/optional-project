@@ -1,0 +1,98 @@
+% Input alphabet
+a
+b
+c
+% Specification automaton states
+1
+2
+3
+4
+5
+% Transition function
+1 a
+5
+1 a
+2
+1 a
+1
+1 a
+1
+2 a
+4
+2 b
+5
+2 a
+4
+3 b
+1
+3 c
+1
+3 c
+4
+4 b
+5
+4 c
+5
+4 b
+5
+4 c
+5
+4 c
+2
+4 c
+2
+5 a
+1
+5 a
+2
+5 c
+2
+5 a
+2
+5 c
+2
+% Initial state
+2
+% Final states
+2
+% System automaton states
+1
+2
+3
+4
+5
+% Transition function
+1 a
+2
+1 b
+2
+1 a
+1
+2 a
+1
+3 a
+1
+3 c
+5
+3 b
+2
+3 a
+4
+4 a
+1
+4 a
+1
+4 b
+2
+4 c
+2
+4 a
+1
+5 a
+1
+5 c
+4
+% Initial state
+4
+% Final states
+3

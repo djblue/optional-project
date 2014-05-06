@@ -2,6 +2,7 @@
 a
 b
 % Specification automaton states
+1
 2
 % Transition function
 1 a
