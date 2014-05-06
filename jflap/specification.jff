@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?><!--Created with JFLAP 6.4.--><structure>
+	<type>fa</type>
+	<automaton>
+		<!--The list of states.-->
+		<state id="0" name="s0">
+			<x>133.0</x>
+			<y>270.0</y>
+			<initial/>
+			<final/>
+		</state>
+		<state id="1" name="s1">
+			<x>224.0</x>
+			<y>270.0</y>
+		</state>
+		<state id="2" name="s2">
+			<x>323.0</x>
+			<y>270.0</y>
+			<final/>
+		</state>
+		<!--The list of transitions.-->
+		<transition>
+			<from>1</from>
+			<to>2</to>
+			<read>B</read>
+		</transition>
+		<transition>
+			<from>2</from>
+			<to>2</to>
+			<read>E</read>
+		</transition>
+		<transition>
+			<from>0</from>
+			<to>0</to>
+			<read>F</read>
+		</transition>
+		<transition>
+			<from>2</from>
+			<to>2</to>
+			<read>F</read>
+		</transition>
+		<transition>
+			<from>0</from>
+			<to>0</to>
+			<read>P</read>
+		</transition>
+		<transition>
+			<from>2</from>
+			<to>2</to>
+			<read>P</read>
+		</transition>
+		<transition>
+			<from>0</from>
+			<to>0</to>
+			<read>B</read>
+		</transition>
+		<transition>
+			<from>2</from>
+			<to>2</to>
+			<read>B</read>
+		</transition>
+		<transition>
+			<from>0</from>
+			<to>0</to>
+			<read>C</read>
+		</transition>
+		<transition>
+			<from>0</from>
+			<to>0</to>
+			<read>R</read>
+		</transition>
+		<transition>
+			<from>2</from>
+			<to>2</to>
+			<read>C</read>
+		</transition>
+		<transition>
+			<from>2</from>
+			<to>2</to>
+			<read>R</read>
+		</transition>
+		<transition>
+			<from>0</from>
+			<to>1</to>
+			<read>E</read>
+		</transition>
+	</automaton>
+</structure>
