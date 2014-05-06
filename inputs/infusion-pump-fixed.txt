@@ -1,0 +1,72 @@
+% Input alphabet
+reset
+pump_fluid
+ring_bell
+constant_rate_1
+fluid_full
+fluid_empty
+% Specification automaton states
+s0
+s1
+s2
+% Transition function
+s0 constant_rate_1
+s0
+s0 pump_fluid
+s0
+s0 reset
+s0
+s0 ring_bell
+s0
+s0 fluid_full
+s0
+s0 fluid_empty
+s1
+s1 ring_bell
+s2
+s2 constant_rate_1
+s2
+s2 pump_fluid
+s2
+s2 reset
+s2
+s2 ring_bell
+s2
+s2 fluid_full
+s2
+s2 fluid_empty
+s2
+% Initial state
+s0
+% Final states
+s0
+s2
+% System automaton states
+q0
+q1
+q2
+q3
+q4
+% Transition function
+q0 constant_rate_1
+q1
+q1 reset
+q0
+q1 pump_fluid
+q2
+q2 reset
+q0
+q2 fluid_empty
+q4
+q4 ring_bell
+q5
+q5 fluid_full
+q5
+q5 fluid_full
+q3
+q3 reset
+q0
+% Initial state
+q0
+% Final states
+q0
