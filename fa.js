@@ -161,7 +161,7 @@ DFA.prototype.intersect = function (dfa) {
 DFA.prototype.searchString = function () {
     
     // book keeping variables
-    var example = "";
+    var example = [];
     var visited = [];
 
     // method that recursively defines the search algorithm
@@ -178,7 +178,7 @@ DFA.prototype.searchString = function () {
             var next = DFA.delta[state][c];
 
             if (!visited.contains(next) && hasString(DFA, next)) {
-                example += c;
+                example.push(c);
                 return true;
             }
         }
@@ -188,7 +188,7 @@ DFA.prototype.searchString = function () {
 
     // return example if one is found, else return null
     if (hasString(this, this.initial)) {
-        return example;
+        return example.reverse();
     } else {
         return null;
     }
