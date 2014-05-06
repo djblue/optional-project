@@ -14,9 +14,6 @@ var parserInput = function (input) {
       , sys  = new NFA()
       , nfa = spec;
 
-    spec.Q.push('1');
-    sys.Q.push('1');
-    
     for (var i = 0; i < lines.length - 1; i++) {
 
         var line = lines[i];
