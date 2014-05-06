@@ -69,11 +69,15 @@ var parserInput = function (input) {
 
 };
 
-// read the input file and parse the input
-require('fs').readFile('input.txt', 'utf8', function (err, input) {
-    if (err) {
-        console.log(err);
-    } else {
-        parserInput(input);
-    }
-});
+if (!process.argv[2]) {
+    console.log('USAGE: '+process.argv[0]+' [input]');
+} else {
+    // read the input file and parse the input
+    require('fs').readFile(process.argv[2], 'utf8', function (err, input) {
+        if (err) {
+            console.log(err);
+        } else {
+            parserInput(input);
+        }
+    });
+}
